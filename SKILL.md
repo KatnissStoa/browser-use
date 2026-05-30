@@ -46,7 +46,7 @@ Stop immediately when:
 - CAPTCHA or reCAPTCHA detected → hand off to user
 - Payment flow or 3DS verification detected → hand off to user
 - Legal/compliance consent screen detected → hand off to user
-- Social relationship action requested (follow/unfollow/block) → hand off to user
+- Social relationship action requested (follow/unfollow/block) → confirm with user in chat before executing (use Social Relationship Confirmation template)
 - Same action failed 3 consecutive times → escalate, do not retry
 - Page shows account suspension, IP block, or rate limit error
 - Sensitive data (PII, credentials) unexpectedly visible → do not read, notify user
@@ -61,7 +61,7 @@ See `references/safety-and-recovery.md` for full definitions.
 | LOW | Read-only browsing, data extraction | Proceed autonomously |
 | MEDIUM | Form filling with user-provided data | Proceed, narrate each step |
 | HIGH | Submit/approve actions, content publishing | Confirm before each action |
-| CRITICAL | Payment, delete, legal consent, social relationships, irreversible ops | Mandatory browser takeover |
+| CRITICAL | Payment, delete, legal consent, irreversible ops | Mandatory browser takeover |
 
 ## HITL Interaction Model
 
@@ -89,6 +89,7 @@ See `references/hitl-protocol.md` for all 15 interaction scenarios and their mes
 - Do not explain actions in terms of internal governance categories unless the user explicitly asks about the policy itself
 - When confirmation is needed, ask naturally and directly, for example: "I'm ready to post this on Twitter. Please confirm the final text before I publish it."
 - Keep user-facing explanations grounded in the concrete action, such as publishing, approving, deleting, logging in, or completing verification
+- Do NOT output internal monologue or self-narration (e.g. "Now let me check…", "The user wants me to…", "Let me first…"). Every message must be written directly to the user with clear, actionable information.
 
 ## Workflow
 
@@ -167,16 +168,222 @@ See `references/safety-and-recovery.md`. Summary:
 
 ### 8. Social Media & Content Publishing
 
-- Before publishing ANY content (tweet, post, comment, message): show full preview in chat (HITL C5)
-- User can edit content in chat before AI executes the publish action
-- For social relationship actions (follow/unfollow/block/connect): always hand off browser to user (HITL A8)
+- Before publishing ANY content (tweet, post, comment, message): AI MUST stop and send the C5 Content Publishing Confirmation message. Do NOT click the publish/post/send button until the user explicitly confirms.
+- User-provided content in the original prompt does NOT count as confirmation. Confirmation must be obtained immediately before the publish action.
+- User can edit content in chat before AI executes the publish action.
+- For social relationship actions (follow/unfollow/block/connect): AI MUST stop and send the Social Relationship Confirmation message before executing. Do NOT click the follow/unfollow/block/connect button until the user explicitly confirms.
 
 ### 9. Completion
 
 - Summarize: pages visited, actions taken, results achieved
 - Report failures or skipped items
 
+## HITL Message Templates
+
+These are the exact message templates AI must use for each scenario. Templates in `references/hitl-protocol.md` provide additional context but are NOT automatically loaded — use the templates below.
+
+---
+
+### A1. Login Required
+
+> 🔐 I need you to log in to **[site name]**.
+>
+> 👉 Open the browser: [browser URL]
+>
+> Steps:
+> 1. Enter your username and password
+> 2. Complete any additional prompts
+> 3. Wait until you see **[completion indicator]**
+>
+> Once done, reply here so I can continue.
+
+---
+
+### A2. Two-Factor Authentication
+
+> 🔑 A two-factor verification is required.
+>
+> 👉 Open the browser: [browser URL]
+>
+> Please enter your verification code (check your authenticator app or SMS).
+> After the page advances past the 2FA screen, reply here.
+
+---
+
+### A3. CAPTCHA
+
+> 🤖 There's a CAPTCHA I can't solve.
+>
+> 👉 Open the browser: [browser URL]
+>
+> Please complete the CAPTCHA verification. Once the page moves forward, reply here.
+
+---
+
+### A4. Biometric Authentication
+
+> 🔒 This page requires biometric verification (Face ID / Touch ID / security key) that I can't perform.
+>
+> 👉 Open the browser: [browser URL]
+>
+> Please complete the biometric prompt on your device. Once authenticated, reply here.
+
+---
+
+### A5. Legal / Compliance Consent
+
+> ⚖️ This page requires you to accept legal terms / privacy policy / cookie consent. I cannot agree to legal terms on your behalf.
+>
+> 👉 Open the browser: [browser URL]
+>
+> Please review and accept (or decline) the terms. Once the page moves past the consent screen, reply here.
+
+---
+
+### A6. Payment Confirmation
+
+> 💳 A payment step requires your input. I cannot enter payment credentials.
+>
+> 👉 Open the browser: [browser URL]
+>
+> What's needed: [describe — e.g. "enter credit card details", "confirm payment of $XX", "complete 3DS verification"]
+>
+> After the payment is processed (or cancelled), reply here.
+
+---
+
+### A7. Irreversible Operation
+
+> ⚠️ **Irreversible action detected.** This page is asking to confirm: **[exact action, e.g. "Delete account permanently"]**.
+>
+> 👉 Open the browser: [browser URL]
+>
+> I cannot perform irreversible operations on your behalf. Please review carefully and confirm or cancel yourself. Reply here when done.
+
+---
+
+### Social Relationship Confirmation (follow / unfollow / block / connect)
+
+> 👤 I'm about to perform a social relationship action on your behalf:
+>
+> **Platform:** [Twitter / LinkedIn / etc.]
+> **Action:** [follow / unfollow / block / connect]
+> **Target:** [@username or full name]
+>
+> This will send a notification to the other party and may affect your visibility. Want me to proceed, or cancel?
+
+**User options:**
+- "yes" / "proceed" / "go" → AI executes the action
+- "cancel" → AI aborts, does not click the button
+
+---
+
+### B1. Page Error / Stuck
+
+> 🚫 I'm stuck at **[current URL]**.
+>
+> 👉 Open the browser: [browser URL]
+>
+> What happened: [description]
+> What I tried: [actions]
+> Progress so far: [e.g. "completed 8/10 orders"]
+>
+> Please try refreshing or navigating to **[target URL]**. Reply here when ready.
+
+---
+
+### B2. Multi-Option Ambiguity (chat-level first)
+
+> The page is showing multiple options:
+> 1. Option A — [details]
+> 2. Option B — [details]
+> 3. Option C — [details]
+>
+> Which one should I select?
+
+If user can't decide from description, escalate to browser takeover:
+
+> 👉 Open the browser to see the options yourself: [browser URL]
+>
+> Please select the option you want, then reply here.
+
+---
+
+### C1. Approve / Reject
+
+> I'm about to **[action]** on **[target]**.
+> Details: [specifics — PR title, order amount, etc.]
+>
+> Proceed? Reply **yes** or **no**.
+
+For batch operations: confirm first item, then ask "Apply the same to the remaining N items?"
+
+---
+
+### C2. Edit / Revise
+
+> Here's what I plan to submit:
+>
+> **Field 1:** value
+> **Field 2:** value
+> **Field 3:** value
+>
+> Want me to submit as-is, or would you like to change anything?
+
+---
+
+### C3. Supplementary Input
+
+> I need additional information to continue:
+> - **[field name]**: [what's needed]
+>
+> Please provide it here.
+
+For session expiry:
+
+> ⏱ Session expired at **[site]**. I completed **[progress summary]**.
+>
+> 👉 Please re-login: [browser URL]
+>
+> After you see **[indicator]**, reply here and I'll resume from where I left off.
+
+---
+
+### C4. Abort / Redirect
+
+> ⏸ Stopped. Here's where I was:
+> - Current task: [description]
+> - Progress: [what was completed]
+> - Pending: [what was not done]
+>
+> What would you like to do instead?
+
+---
+
+### C5. Content Publishing Confirmation
+
+> 📝 I'm about to publish the following content:
+>
+> **Platform:** [Twitter / LinkedIn / etc.]
+> **Account:** [which account]
+> **Action:** [new post / reply to @xxx / direct message to xxx]
+> **Content:**
+> > [full text of the post/message, exactly as it will appear]
+>
+> [If applicable: **Attachments:** image/link preview description]
+>
+> Want me to publish as-is, edit something, or cancel?
+
+**User options:**
+- "publish" / "go" / "yes" → AI executes the publish action
+- "change X to Y" → AI updates content, shows new preview, asks again
+- "cancel" → AI aborts, does not publish
+
+**Rule:** AI MUST NEVER publish content without sending this message and receiving explicit confirmation. User-provided content in the original prompt does NOT count as confirmation.
+
+---
+
 ## References
 
-- **HITL interaction protocol (15 scenarios)**: See `references/hitl-protocol.md`
+- **HITL interaction protocol (full 15 scenarios with context)**: See `references/hitl-protocol.md`
 - **Safety, risk, and recovery**: See `references/safety-and-recovery.md`

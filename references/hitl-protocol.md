@@ -144,16 +144,20 @@ AI asks a question or presents options in the chat. No browser takeover needed �
 
 **Trigger:** User asks AI to follow, unfollow, block, unblock, connect, disconnect, send friend request, or remove a contact on any social platform.
 
-**AI sends:**
-> 👤 This is a social relationship action that I should not perform on your behalf — **[action, e.g. "follow @username on Twitter" / "connect with Jane Doe on LinkedIn"]**.
+**AI sends (chat-level confirmation, no browser takeover):**
+> 👤 I'm about to perform a social relationship action on your behalf:
 >
-> These actions have social consequences (notifications to the other party, visibility changes) and are difficult to undo silently.
+> **Platform:** [Twitter / LinkedIn / etc.]
+> **Action:** [follow / unfollow / block / connect]
+> **Target:** [@username or full name]
 >
-> 👉 Open the browser: [browser URL]
->
-> Please perform the action yourself. Reply here when done.
+> This will send a notification to the other party and may affect your visibility. Want me to proceed, or cancel?
 
-**Rule:** AI never clicks follow/unfollow/block/connect buttons. Always hands off to user. This applies to ALL social platforms (Twitter/X, LinkedIn, Instagram, Facebook, etc.).
+**User options:**
+- "yes" / "proceed" / "go" → AI executes the action
+- "cancel" → AI aborts, does not click the button
+
+**Rule:** AI MUST send this confirmation message and wait for explicit user approval before clicking any follow/unfollow/block/connect button. This applies to ALL social platforms (Twitter/X, LinkedIn, Instagram, Facebook, etc.). No browser takeover needed — confirmation happens in chat.
 
 ---
 
