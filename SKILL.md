@@ -73,10 +73,22 @@ If session was idle 10+ minutes before resuming: re-check login indicators befor
 
 ### Category B — Conditional Escalation
 
-Try once autonomously. If still blocked, escalate to a full Category A handoff.
+Try once autonomously. If still blocked:
+1. Take a `browser_screenshot` to capture the current state
+2. Send the screenshot + the following message in chat:
 
-- Page error / unresponsive: try `location.reload()` once → still stuck → handoff
-- Multi-option ambiguity: describe options in chat → user still can't decide → send browser URL
+> 🚫 I'm stuck at **[current URL]**
+>
+> 👉 Open the browser: [browser URL]
+>
+> **What happened:** [brief description]
+> **What I tried:** [actions taken]
+> **Progress so far:** [what was completed]
+>
+> Please [specific ask]. Reply here when ready.
+
+- Page error / unresponsive: try `location.reload()` once → still stuck → escalate as above
+- Multi-option ambiguity: describe options in chat → user still can't decide → escalate as above
 
 ### Category C — Chat Confirmation (no browser handoff)
 
