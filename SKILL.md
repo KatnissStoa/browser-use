@@ -82,7 +82,7 @@ Try once autonomously. If still blocked, escalate to a full Category A handoff.
 
 STOP all browser actions. Ask in chat and **do NOT proceed until the user replies**. Then act on their response.
 
-- **AI-drafted content about to be submitted** (comment, reply, review, post, message, or any text the AI composed rather than the user providing word-for-word) → show full draft in chat → "Here's what I'll submit: [full text]. Post as-is, edit, or cancel?"
+- **AI-drafted content** (comment, reply, review, post, message, or any text the AI composed rather than the user providing word-for-word) → draft the text in chat FIRST, before typing anything into the browser → "Here's what I plan to submit: [full text]. Post as-is, edit, or cancel?" → only open the browser text input and type after the user confirms
 - **State-changing action** (submit, approve, reject, merge, close, reopen) → "I'm about to [action] on [target]. Proceed?"
 - **Social relationship action** (follow / unfollow / block / connect on any platform) → "I'm about to [action] [@target] on [platform]. Proceed or cancel?"
 - **Missing required field** → ask for the specific value
@@ -109,7 +109,7 @@ On reply: confirm → execute; edit → apply change, re-confirm; cancel → abo
 
 **Before every browser action:**
 1. Does the page match any Category A scenario? → STOP, call `mcp__browser_session__request_human_help`, wait.
-2. Am I about to submit AI-drafted text, or perform a state-changing / irreversible action? → STOP, Category C confirmation, wait for reply, then decide.
+2. Am I about to type AI-drafted text into the browser, or perform a state-changing / irreversible action? → STOP, show the draft or confirm in chat (Category C), wait for reply, then decide.
 3. Only if neither applies → proceed.
 
 - State what you're about to do before each action
